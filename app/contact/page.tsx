@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { MapPin, Phone, Mail, Clock, Send, Building, MessageSquare } from "lucide-react"
+import { MapPin, Phone, Mail, Clock, Send, Building, MessageSquare, ExternalLink } from "lucide-react"
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -40,6 +40,9 @@ export default function ContactPage() {
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
   }
+
+  // Correct Google Maps embed URL that shows the pin/marker
+  const googleMapsEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3686.525425555318!2d88.380627275955!3d22.5185064795332!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a0273f21b1e0c0d%3A0x8f5a1a9bcee5e5f!2sHeritage%20Institute%20of%20Technology!5e0!3m2!1sen!2sin!4v1714567890123!5m2!1sen!2sin&markers=color:red%7Clabel:IIC%7C22.518506,88.380627"
 
   return (
     <div className="min-h-screen bg-background">
@@ -266,14 +269,36 @@ export default function ContactPage() {
           </div>
 
           <Card>
-            <CardContent className="p-0">
-              <div className="bg-muted/30 h-96 flex items-center justify-center rounded-lg">
-                <div className="text-center">
-                  <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Interactive map will be integrated here</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Heritage Institute of Technology, Chowbaga Road, Anandapur, Kolkata - 700107
-                  </p>
+            <CardContent className="p-0 overflow-hidden">
+              <div className="h-96 w-full">
+                <iframe
+                  src={googleMapsEmbedUrl}
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Google Maps - Heritage Institute of Technology"
+                  className="border-0"
+                ></iframe>
+              </div>
+              <div className="p-4 bg-muted/30 border-t">
+                <div className="flex flex-col sm:flex-row justify-between items-center gap-2">
+                  <div className="flex items-center">
+                    <MapPin className="h-4 w-4 text-muted-foreground mr-2" />
+                    <span className="text-sm text-muted-foreground">
+                      Heritage Institute of Technology, Chowbaga Road, Anandapur, Kolkata - 700107
+                    </span>
+                  </div>
+                  <a
+                    href="https://maps.app.goo.gl/pn5wNwS7pY5uV6jd8"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary hover:underline flex items-center"
+                  >
+                    Open in Google Maps <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
                 </div>
               </div>
             </CardContent>

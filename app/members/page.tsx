@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Mail, Phone, User, GraduationCap, Briefcase, Filter } from "lucide-react"
+import { Search, Mail, Phone, User, GraduationCap, Briefcase, Filter, ChevronLeft, ChevronRight } from "lucide-react"
 
 // Sample data - in a real app, this would come from an API
 const members = [
@@ -131,11 +131,69 @@ const roles = [
   "Event Coordinator",
 ]
 
+// Skeleton Loading Component
+function MemberCardSkeleton() {
+  return (
+    <Card className="animate-pulse">
+      <CardHeader className="text-center pb-4">
+        <div className="mx-auto mb-4">
+          <div className="w-24 h-24 rounded-full bg-muted"></div>
+        </div>
+        <div className="h-6 bg-muted rounded w-3/4 mx-auto mb-2"></div>
+        <div className="h-4 bg-muted rounded w-1/2 mx-auto mb-2"></div>
+        <div className="h-4 bg-muted rounded w-2/3 mx-auto"></div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 bg-muted rounded"></div>
+            <div className="h-4 bg-muted rounded w-3/4"></div>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-4 w-4 bg-muted rounded"></div>
+            <div className="h-4 bg-muted rounded w-2/3"></div>
+          </div>
+        </div>
+        <div className="pt-2 border-t space-y-2">
+          <div className="h-4 bg-muted rounded w-full"></div>
+          <div className="h-4 bg-muted rounded w-5/6"></div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function MembersPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedDepartment, setSelectedDepartment] = useState("All Departments")
   const [selectedRole, setSelectedRole] = useState("All Roles")
   const [selectedType, setSelectedType] = useState("all")
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+
+  // Check if mobile view
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkIsMobile()
+    window.addEventListener('resize', checkIsMobile)
+    
+    return () => {
+      window.removeEventListener('resize', checkIsMobile)
+    }
+  }, [])
+
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1500)
+    
+    return () => clearTimeout(timer)
+  }, [])
 
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
@@ -151,6 +209,15 @@ export default function MembersPage() {
 
     return matchesSearch && matchesDepartment && matchesRole && matchesType
   })
+
+  // Carousel navigation
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev === filteredMembers.length - 1 ? 0 : prev + 1))
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? filteredMembers.length - 1 : prev - 1))
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -263,85 +330,84 @@ export default function MembersPage() {
         </div>
       </section>
 
-      {/* Members Grid */}
+      {/* Members Grid/Carousel */}
       <section className="py-12 px-4">
         <div className="container mx-auto">
-          {filteredMembers.length === 0 ? (
+          {isLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <MemberCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : filteredMembers.length === 0 ? (
             <div className="text-center py-12">
               <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-2">No members found</h3>
               <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filteredMembers.map((member) => (
-                <Card key={member.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="text-center pb-4">
-                    <div className="mx-auto mb-4">
-                      <img
-                        src={member.image || "/placeholder.svg"}
-                        alt={member.name}
-                        className="w-24 h-24 rounded-full object-cover border-4 border-accent/20"
+            <>
+              {/* Desktop Grid View */}
+              <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filteredMembers.map((member) => (
+                  <MemberCard key={member.id} member={member} />
+                ))}
+              </div>
+
+              {/* Mobile Carousel View */}
+              <div className="md:hidden relative">
+                <div className="overflow-hidden">
+                  <div 
+                    className="flex transition-transform duration-300 ease-in-out"
+                    style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                  >
+                    {filteredMembers.map((member) => (
+                      <div key={member.id} className="w-full flex-shrink-0 px-2">
+                        <MemberCard member={member} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Carousel Navigation */}
+                {filteredMembers.length > 1 && (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm"
+                      onClick={prevSlide}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10 bg-background/80 backdrop-blur-sm"
+                      onClick={nextSlide}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+                
+                {/* Carousel Indicators */}
+                {filteredMembers.length > 1 && (
+                  <div className="flex justify-center mt-4 space-x-2">
+                    {filteredMembers.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`h-2 w-2 rounded-full ${
+                          index === currentSlide ? 'bg-primary' : 'bg-muted'
+                        }`}
+                        onClick={() => setCurrentSlide(index)}
+                        aria-label={`Go to slide ${index + 1}`}
                       />
-                    </div>
-                    <CardTitle className="text-lg">{member.name}</CardTitle>
-                    <div className="flex flex-col gap-2">
-                      <Badge variant={member.type === "faculty" ? "default" : "secondary"}>
-                        {member.type === "faculty" ? (
-                          <Briefcase className="w-3 h-3 mr-1" />
-                        ) : (
-                          <GraduationCap className="w-3 h-3 mr-1" />
-                        )}
-                        {member.role}
-                      </Badge>
-                      <CardDescription className="text-sm">{member.department}</CardDescription>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-3">
-                    {/* Contact Information */}
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground truncate">{member.email}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">{member.phone}</span>
-                      </div>
-                    </div>
-
-                    {/* Faculty-specific information */}
-                    {member.type === "faculty" && (
-                      <div className="space-y-2 pt-2 border-t">
-                        <div className="text-sm">
-                          <span className="font-medium text-foreground">Experience:</span>
-                          <p className="text-muted-foreground mt-1">{member.experience}</p>
-                        </div>
-                        <div className="text-sm">
-                          <span className="font-medium text-foreground">Qualification:</span>
-                          <p className="text-muted-foreground mt-1">{member.qualification}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Student-specific information */}
-                    {member.type === "student" && (
-                      <div className="space-y-2 pt-2 border-t">
-                        <div className="flex justify-between text-sm">
-                          <span className="font-medium text-foreground">Year:</span>
-                          <span className="text-muted-foreground">{member.year}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="font-medium text-foreground">Semester:</span>
-                          <span className="text-muted-foreground">{member.semester}</span>
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
         </div>
       </section>
@@ -360,5 +426,76 @@ export default function MembersPage() {
         </div>
       </section>
     </div>
+  )
+}
+
+// Extracted Member Card Component for reusability
+function MemberCard({ member }: { member: any }) {
+  return (
+    <Card className="hover:shadow-lg transition-shadow h-full">
+      <CardHeader className="text-center pb-4">
+        <div className="mx-auto mb-4">
+          <img
+            src={member.image || "/placeholder.svg"}
+            alt={member.name}
+            className="w-24 h-24 rounded-full object-cover border-4 border-accent/20"
+          />
+        </div>
+        <CardTitle className="text-lg">{member.name}</CardTitle>
+        <div className="flex flex-col gap-2">
+          <Badge variant={member.type === "faculty" ? "default" : "secondary"}>
+            {member.type === "faculty" ? (
+              <Briefcase className="w-3 h-3 mr-1" />
+            ) : (
+              <GraduationCap className="w-3 h-3 mr-1" />
+            )}
+            {member.role}
+          </Badge>
+          <CardDescription className="text-sm">{member.department}</CardDescription>
+        </div>
+      </CardHeader>
+
+      <CardContent className="space-y-3">
+        {/* Contact Information */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2 text-sm">
+            <Mail className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground truncate">{member.email}</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm">
+            <Phone className="h-4 w-4 text-muted-foreground" />
+            <span className="text-muted-foreground">{member.phone}</span>
+          </div>
+        </div>
+
+        {/* Faculty-specific information */}
+        {member.type === "faculty" && (
+          <div className="space-y-2 pt-2 border-t">
+            <div className="text-sm">
+              <span className="font-medium text-foreground">Experience:</span>
+              <p className="text-muted-foreground mt-1">{member.experience}</p>
+            </div>
+            <div className="text-sm">
+              <span className="font-medium text-foreground">Qualification:</span>
+              <p className="text-muted-foreground mt-1">{member.qualification}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Student-specific information */}
+        {member.type === "student" && (
+          <div className="space-y-2 pt-2 border-t">
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-foreground">Year:</span>
+              <span className="text-muted-foreground">{member.year}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="font-medium text-foreground">Semester:</span>
+              <span className="text-muted-foreground">{member.semester}</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

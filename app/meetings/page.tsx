@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,6 +22,53 @@ import {
   ImageIcon,
   Filter,
 } from "lucide-react"
+
+// Skeleton Loading Components
+function MeetingCardSkeleton() {
+  return (
+    <Card className="hover:shadow-lg transition-shadow animate-pulse">
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-center">
+              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center">
+                <div className="h-6 w-6 bg-muted-foreground/20 rounded" />
+              </div>
+              <div className="w-px h-8 bg-border mt-2" />
+            </div>
+            <div className="text-left flex-1">
+              <div className="flex flex-wrap items-center gap-3 mb-2">
+                <div className="h-6 bg-muted rounded-md w-3/4" />
+                <div className="h-5 bg-muted rounded-full w-16" />
+                <div className="h-5 bg-muted rounded-full w-20" />
+              </div>
+              <div className="flex flex-wrap gap-4">
+                <div className="h-4 bg-muted rounded w-24" />
+                <div className="h-4 bg-muted rounded w-20" />
+                <div className="h-4 bg-muted rounded w-32" />
+                <div className="h-4 bg-muted rounded w-28" />
+              </div>
+            </div>
+          </div>
+          <div className="h-5 w-5 bg-muted rounded" />
+        </div>
+      </CardHeader>
+    </Card>
+  )
+}
+
+function StatsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
+      {[1, 2, 3, 4].map((item) => (
+        <div key={item} className="text-center">
+          <div className="text-2xl font-bold mb-1 h-8 bg-muted rounded w-3/4 mx-auto" />
+          <div className="text-sm h-4 bg-muted rounded w-1/2 mx-auto" />
+        </div>
+      ))}
+    </div>
+  )
+}
 
 // Sample meetings data
 const meetings = [
@@ -165,6 +212,15 @@ export default function MeetingsPage() {
   const [selectedType, setSelectedType] = useState("All Types")
   const [selectedStatus, setSelectedStatus] = useState("All Status")
   const [expandedMeetings, setExpandedMeetings] = useState<number[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    // Simulate loading delay
+    const timer = setTimeout(() => {
+      setIsLoading(false)
+    }, 1500)
+    return () => clearTimeout(timer)
+  }, [])
 
   const toggleMeeting = (meetingId: number) => {
     setExpandedMeetings((prev) =>
@@ -194,73 +250,124 @@ export default function MeetingsPage() {
     })
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header />
+        
+        {/* Page Header Skeleton */}
+        <section className="py-12 px-4 bg-muted/50">
+          <div className="container mx-auto">
+            <div className="text-center mb-8">
+              <div className="h-10 bg-muted rounded w-3/5 mx-auto mb-4" />
+              <div className="h-6 bg-muted rounded w-4/5 mx-auto" />
+            </div>
+            <StatsSkeleton />
+          </div>
+        </section>
+
+        {/* Search and Filters Skeleton */}
+        <section className="py-8 px-4 bg-background border-b">
+          <div className="container mx-auto">
+            <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
+              <div className="h-10 bg-muted rounded w-full max-w-md" />
+              <div className="flex flex-wrap gap-4">
+                <div className="h-10 bg-muted rounded w-40" />
+                <div className="h-10 bg-muted rounded w-32" />
+              </div>
+            </div>
+            <div className="h-4 bg-muted rounded w-40 mt-4" />
+          </div>
+        </section>
+
+        {/* Meetings Timeline Skeleton */}
+        <section className="py-12 px-4">
+          <div className="container mx-auto max-w-4xl space-y-6">
+            {[1, 2, 3].map((item) => (
+              <MeetingCardSkeleton key={item} />
+            ))}
+          </div>
+        </section>
+
+        {/* Call to Action Skeleton */}
+        <section className="py-12 px-4 bg-muted/50">
+          <div className="container mx-auto text-center">
+            <div className="h-8 bg-muted rounded w-1/3 mx-auto mb-4" />
+            <div className="h-5 bg-muted rounded w-2/3 mx-auto mb-6" />
+            <div className="h-10 bg-muted rounded w-40 mx-auto" />
+          </div>
+        </section>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
 
       {/* Page Header */}
-      <section className="py-12 px-4 bg-muted/50">
+      <section className="py-8 md:py-12 px-4 bg-muted/50">
         <div className="container mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-primary mb-4">Meetings Archive</h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary mb-4">Meetings Archive</h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto">
               Access comprehensive records of all IIC meetings, including agendas, minutes, and key decisions that shape
               our innovation ecosystem.
             </p>
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent mb-1">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-12">
+            <div className="text-center p-3 md:p-0">
+              <div className="text-xl md:text-2xl font-bold text-accent mb-1">
                 {meetings.filter((m) => m.status === "completed").length}
               </div>
-              <div className="text-sm text-muted-foreground">Completed Meetings</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Completed Meetings</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent mb-1">
+            <div className="text-center p-3 md:p-0">
+              <div className="text-xl md:text-2xl font-bold text-accent mb-1">
                 {meetings.filter((m) => m.status === "upcoming").length}
               </div>
-              <div className="text-sm text-muted-foreground">Upcoming Meetings</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Upcoming Meetings</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent mb-1">
+            <div className="text-center p-3 md:p-0">
+              <div className="text-xl md:text-2xl font-bold text-accent mb-1">
                 {meetings.reduce((sum, m) => sum + m.attendees, 0)}
               </div>
-              <div className="text-sm text-muted-foreground">Total Attendees</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Total Attendees</div>
             </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-accent mb-1">{new Set(meetings.map((m) => m.type)).size}</div>
-              <div className="text-sm text-muted-foreground">Meeting Types</div>
+            <div className="text-center p-3 md:p-0">
+              <div className="text-xl md:text-2xl font-bold text-accent mb-1">{new Set(meetings.map((m) => m.type)).size}</div>
+              <div className="text-xs md:text-sm text-muted-foreground">Meeting Types</div>
             </div>
           </div>
         </div>
       </section>
 
       {/* Search and Filters */}
-      <section className="py-8 px-4 bg-background border-b">
+      <section className="py-6 md:py-8 px-4 bg-background border-b">
         <div className="container mx-auto">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative w-full md:max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search meetings..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 w-full"
               />
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-4 items-center">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <div className="flex items-center gap-2 sm:mr-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Filters:</span>
+                <span className="text-sm font-medium hidden sm:inline">Filters:</span>
               </div>
 
               <Select value={selectedType} onValueChange={setSelectedType}>
-                <SelectTrigger className="w-48">
+                <SelectTrigger className="w-full sm:w-40 md:w-48">
                   <SelectValue placeholder="Meeting Type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -273,7 +380,7 @@ export default function MeetingsPage() {
               </Select>
 
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger className="w-full sm:w-36 md:w-40">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -295,7 +402,7 @@ export default function MeetingsPage() {
       </section>
 
       {/* Meetings Timeline */}
-      <section className="py-12 px-4">
+      <section className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-4xl">
           {filteredMeetings.length === 0 ? (
             <div className="text-center py-12">
@@ -304,53 +411,57 @@ export default function MeetingsPage() {
               <p className="text-muted-foreground">Try adjusting your search or filter criteria.</p>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {filteredMeetings.map((meeting, index) => (
-                <Collapsible key={meeting.id}>
+                <Collapsible key={meeting.id} open={expandedMeetings.includes(meeting.id)}>
                   <Card className="hover:shadow-lg transition-shadow">
                     <CollapsibleTrigger className="w-full" onClick={() => toggleMeeting(meeting.id)}>
-                      <CardHeader className="cursor-pointer">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="flex flex-col items-center">
-                              <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center">
-                                <Calendar className="h-6 w-6 text-accent" />
+                      <CardHeader className="cursor-pointer p-4 md:p-6">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-start gap-3 md:gap-4">
+                            <div className="flex flex-col items-center mt-1">
+                              <div className="w-10 h-10 md:w-12 md:h-12 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+                                <Calendar className="h-5 w-5 md:h-6 md:w-6 text-accent" />
                               </div>
-                              {index < filteredMeetings.length - 1 && <div className="w-px h-8 bg-border mt-2" />}
+                              {index < filteredMeetings.length - 1 && <div className="w-px h-6 md:h-8 bg-border mt-2" />}
                             </div>
                             <div className="text-left">
-                              <div className="flex items-center gap-3 mb-2">
-                                <CardTitle className="text-lg">{meeting.title}</CardTitle>
-                                <Badge variant={meeting.status === "completed" ? "default" : "secondary"}>
-                                  {meeting.status}
-                                </Badge>
-                                <Badge variant="outline">{meeting.type}</Badge>
+                              <div className="flex flex-wrap items-center gap-2 mb-2">
+                                <CardTitle className="text-base md:text-lg">{meeting.title}</CardTitle>
+                                <div className="flex flex-wrap gap-2">
+                                  <Badge variant={meeting.status === "completed" ? "default" : "secondary"} className="text-xs">
+                                    {meeting.status}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">
+                                    {meeting.type}
+                                  </Badge>
+                                </div>
                               </div>
-                              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                              <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 text-xs md:text-sm text-muted-foreground">
                                 <div className="flex items-center gap-1">
-                                  <Calendar className="h-4 w-4" />
-                                  {formatDate(meeting.date)}
+                                  <Calendar className="h-3 w-3 md:h-4 md:w-4" />
+                                  <span>{formatDate(meeting.date)}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <Clock className="h-4 w-4" />
-                                  {meeting.time}
+                                  <Clock className="h-3 w-3 md:h-4 md:w-4" />
+                                  <span>{meeting.time}</span>
+                                </div>
+                                <div className="flex items-center gap-1 xs:col-span-2">
+                                  <MapPin className="h-3 w-3 md:h-4 md:w-4 flex-shrink-0" />
+                                  <span className="truncate">{meeting.venue}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
-                                  <MapPin className="h-4 w-4" />
-                                  {meeting.venue}
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <Users className="h-4 w-4" />
-                                  {meeting.attendees} attendees
+                                  <Users className="h-3 w-3 md:h-4 md:w-4" />
+                                  <span>{meeting.attendees} attendees</span>
                                 </div>
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0 mt-1">
                             {expandedMeetings.includes(meeting.id) ? (
-                              <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                              <ChevronUp className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                             ) : (
-                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                              <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
                             )}
                           </div>
                         </div>
@@ -358,18 +469,18 @@ export default function MeetingsPage() {
                     </CollapsibleTrigger>
 
                     <CollapsibleContent>
-                      <CardContent className="pt-0">
-                        <div className="space-y-6">
+                      <CardContent className="pt-0 px-4 md:px-6 pb-4 md:pb-6">
+                        <div className="space-y-4 md:space-y-6">
                           {/* Description */}
                           <div>
-                            <h4 className="font-semibold text-foreground mb-2">Meeting Overview</h4>
-                            <p className="text-muted-foreground">{meeting.description}</p>
+                            <h4 className="font-semibold text-foreground mb-2 text-sm md:text-base">Meeting Overview</h4>
+                            <p className="text-muted-foreground text-sm">{meeting.description}</p>
                           </div>
 
                           {/* Key Points */}
                           {meeting.keyPoints && (
                             <div>
-                              <h4 className="font-semibold text-foreground mb-2">Key Discussion Points</h4>
+                              <h4 className="font-semibold text-foreground mb-2 text-sm md:text-base">Key Discussion Points</h4>
                               <ul className="space-y-1">
                                 {meeting.keyPoints.map((point, idx) => (
                                   <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
@@ -383,21 +494,21 @@ export default function MeetingsPage() {
 
                           {/* Documents */}
                           <div>
-                            <h4 className="font-semibold text-foreground mb-3">Meeting Documents</h4>
-                            <div className="grid md:grid-cols-2 gap-4">
+                            <h4 className="font-semibold text-foreground mb-3 text-sm md:text-base">Meeting Documents</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                               {meeting.agenda && (
-                                <Card className="p-4">
+                                <Card className="p-3 md:p-4">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                      <FileText className="h-5 w-5 text-blue-600" />
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                      <FileText className="h-4 w-4 md:h-5 md:w-5 text-blue-600" />
                                     </div>
-                                    <div className="flex-1">
-                                      <h5 className="font-medium text-sm">Agenda</h5>
-                                      <p className="text-xs text-muted-foreground">{meeting.agenda.title}</p>
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="font-medium text-xs md:text-sm">Agenda</h5>
+                                      <p className="text-xs text-muted-foreground truncate">{meeting.agenda.title}</p>
                                     </div>
-                                    <Button size="sm" variant="outline" asChild>
+                                    <Button size="sm" variant="outline" className="flex-shrink-0" asChild>
                                       <a href={meeting.agenda.url} download>
-                                        <Download className="h-4 w-4" />
+                                        <Download className="h-3 w-3 md:h-4 md:w-4" />
                                       </a>
                                     </Button>
                                   </div>
@@ -405,18 +516,18 @@ export default function MeetingsPage() {
                               )}
 
                               {meeting.minutes && (
-                                <Card className="p-4">
+                                <Card className="p-3 md:p-4">
                                   <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                                      <FileText className="h-5 w-5 text-green-600" />
+                                    <div className="w-8 h-8 md:w-10 md:h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                      <FileText className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                                     </div>
-                                    <div className="flex-1">
-                                      <h5 className="font-medium text-sm">Minutes</h5>
-                                      <p className="text-xs text-muted-foreground">{meeting.minutes.title}</p>
+                                    <div className="flex-1 min-w-0">
+                                      <h5 className="font-medium text-xs md:text-sm">Minutes</h5>
+                                      <p className="text-xs text-muted-foreground truncate">{meeting.minutes.title}</p>
                                     </div>
-                                    <Button size="sm" variant="outline" asChild>
+                                    <Button size="sm" variant="outline" className="flex-shrink-0" asChild>
                                       <a href={meeting.minutes.url} download>
-                                        <Download className="h-4 w-4" />
+                                        <Download className="h-3 w-3 md:h-4 md:w-4" />
                                       </a>
                                     </Button>
                                   </div>
@@ -428,21 +539,21 @@ export default function MeetingsPage() {
                           {/* Media */}
                           {(meeting.photos || meeting.videoUrl) && (
                             <div>
-                              <h4 className="font-semibold text-foreground mb-3">Meeting Media</h4>
+                              <h4 className="font-semibold text-foreground mb-3 text-sm md:text-base">Meeting Media</h4>
                               <div className="space-y-4">
                                 {meeting.videoUrl && (
-                                  <Card className="p-4">
+                                  <Card className="p-3 md:p-4">
                                     <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                                        <Video className="h-5 w-5 text-purple-600" />
+                                      <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <Video className="h-4 w-4 md:h-5 md:w-5 text-purple-600" />
                                       </div>
-                                      <div className="flex-1">
-                                        <h5 className="font-medium text-sm">Meeting Recording</h5>
+                                      <div className="flex-1 min-w-0">
+                                        <h5 className="font-medium text-xs md:text-sm">Meeting Recording</h5>
                                         <p className="text-xs text-muted-foreground">Video recording of the meeting</p>
                                       </div>
-                                      <Button size="sm" variant="outline" asChild>
+                                      <Button size="sm" variant="outline" className="flex-shrink-0" asChild>
                                         <a href={meeting.videoUrl} target="_blank" rel="noopener noreferrer">
-                                          <Video className="h-4 w-4" />
+                                          <Video className="h-3 w-3 md:h-4 md:w-4" />
                                         </a>
                                       </Button>
                                     </div>
@@ -459,12 +570,9 @@ export default function MeetingsPage() {
                                     </div>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                       {meeting.photos.map((photo, idx) => (
-                                        <img
-                                          key={idx}
-                                          src={photo || "/placeholder.svg"}
-                                          alt={`Meeting photo ${idx + 1}`}
-                                          className="w-full h-24 object-cover rounded-lg border"
-                                        />
+                                        <div key={idx} className="aspect-square bg-muted rounded-lg border flex items-center justify-center">
+                                          <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
+                                        </div>
                                       ))}
                                     </div>
                                   </div>
@@ -484,10 +592,10 @@ export default function MeetingsPage() {
       </section>
 
       {/* Call to Action */}
-      <section className="py-12 px-4 bg-muted/50">
+      <section className="py-8 md:py-12 px-4 bg-muted/50">
         <div className="container mx-auto text-center">
-          <h2 className="text-2xl font-bold text-primary mb-4">Stay Updated</h2>
-          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
+          <h2 className="text-xl md:text-2xl font-bold text-primary mb-4">Stay Updated</h2>
+          <p className="text-muted-foreground mb-6 max-w-2xl mx-auto text-sm md:text-base">
             Don't miss our upcoming meetings and important announcements. Subscribe to our newsletter for regular
             updates.
           </p>
